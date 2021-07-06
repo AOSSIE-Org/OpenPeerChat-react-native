@@ -1,19 +1,16 @@
 package com.aossiep2p;
 
 import androidx.annotation.NonNull;
-import android.Manifest;
-
-import com.facebook.react.bridge.NativeModule;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.HashMap;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
@@ -33,15 +30,6 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
     // reactContext is the interface to global information about an application environment.
     private static ReactApplicationContext reactContext;
 
-    private static final String[] REQUIRED_PERMISSIONS =
-            new String[] {
-                    Manifest.permission.BLUETOOTH,
-                    Manifest.permission.BLUETOOTH_ADMIN,
-                    Manifest.permission.ACCESS_WIFI_STATE,
-                    Manifest.permission.CHANGE_WIFI_STATE,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-            };
-
     /**
      * Set to true if advertising
      **/
@@ -58,9 +46,14 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
     private String mName;
 
     /**
-     * Identifier for the device
-     **/
-    private String mServiceId;
+     * Endpoints discovered till now
+     */
+    private final Map<String, Endpoint> mEndpoints = new HashMap<>();
+
+    /**
+     * ServiceId for the app
+     */
+    private final String SERVICE_ID = "com.package.aossiep2p";
 
     ConnectionModule(ReactApplicationContext context) {
         super(context);
@@ -74,6 +67,8 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
             // This always gets the full data of the payload. Will be null if it's not a BYTES
             // payload. You can check the payload type with payload.getType().
             byte[] receivedBytes = payload.asBytes();
+            String msg = new String(receivedBytes, StandardCharsets.UTF_8);
+            emitMessage(msg);
         }
 
         @Override
@@ -95,7 +90,6 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
                      * @endpointId: Id of the remote peer trying to establish connection
                      * @connectionInfo: metadata about the connection
                      */
-
                     // Automatically accept the connection from the remote endpoint
                     Nearby.getConnectionsClient(reactContext).acceptConnection(endpointId, payloadCallback);
                 }
@@ -105,11 +99,14 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
                     switch (result.getStatus().getStatusCode()) {
                         case ConnectionsStatusCodes.STATUS_OK:
                             // We're connected! Can now start sending and receiving data.
+                            Log.d("Status", "Ok");
                             break;
                         case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                             // The connection was rejected by one or both sides.
+                            Log.e("Status", "rejected");
                             break;
                         case ConnectionsStatusCodes.STATUS_ERROR:
+                            Log.e("Status", "error");
                             // The connection broke before it was able to be accepted.
                             break;
                         default:
@@ -134,34 +131,38 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
                 public void onEndpointFound(String endpointId, DiscoveredEndpointInfo info) {
                     // An endpoint was found. We request a connection to it.
                     Log.d("Endpoint discovered", info.getEndpointName());
+                    Endpoint endpoint = new Endpoint(SERVICE_ID, endpointId, info.getEndpointName());
+                    mEndpoints.put(endpointId, endpoint);
+                    getEndpoints(); // emits endpoint list to the react-native side
                     Nearby.getConnectionsClient(reactContext)
                             .requestConnection(mName, endpointId, connectionLifecycleCallback)
                             .addOnSuccessListener(
                                     (Void unused) -> {
-                                        // We successfully requested a connection. Now both sides
-                                        // must accept before the connection is established.
+                                        Log.d("connected", endpointId);
                                     })
                             .addOnFailureListener(
                                     (Exception e) -> {
                                         // Nearby Connections failed to request the connection.
+                                        Log.e("disconnected", endpointId);
                                     });
                 }
 
                 @Override
-                public void onEndpointLost(@NonNull String s) {
+                public void onEndpointLost(@NonNull String endpointId) {
                     // The endpoint discovered is lost
+                    mEndpoints.remove(endpointId);
+                    getEndpoints();
                 }
             };
 
     @ReactMethod
-    private void startAdvertising(final String name, final String serviceId) {
+    private void startAdvertising(final String name) {
         /**
          *@name: A human readable name for the endpoint that will appear on the remote device
          *@serviceId: An identifier to advertise your app to other endpoints
          **/
         mIsAdvertising = true;
         mName = name;
-        mServiceId = serviceId;
         /*
             Default strategy is P2P_Clusters. We can switch to
             another strategy using `setStrategy(STRATEGY)` method
@@ -170,7 +171,7 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
         AdvertisingOptions advertisingOptions =
                 new AdvertisingOptions.Builder().build();
         Nearby.getConnectionsClient(reactContext)
-                .startAdvertising(name, serviceId, connectionLifecycleCallback, advertisingOptions)
+                .startAdvertising(name, SERVICE_ID, connectionLifecycleCallback, advertisingOptions)
                 .addOnSuccessListener(
                         (Void unused) -> {
                             // We're advertising!
@@ -185,14 +186,13 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    private void startDiscovery(final String name, final String serviceId) {
+    private void startDiscovery(final String name) {
         /**
          *@name: A human readable name for the endpoint that will appear on the remote device
          *@serviceId: An identifier to advertise your app to other endpoints
          **/
         mIsDiscovering = true;
         mName = name;
-        mServiceId = serviceId;
         /*
             Default strategy is P2P_Clusters. We can switch to
             another strategy using `setStrategy(STRATEGY)` method
@@ -201,7 +201,7 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
         DiscoveryOptions discoveryOptions =
                 new DiscoveryOptions.Builder().build();
         Nearby.getConnectionsClient(reactContext)
-                .startDiscovery(serviceId, endpointDiscoveryCallback, discoveryOptions)
+                .startDiscovery(SERVICE_ID, endpointDiscoveryCallback, discoveryOptions)
                 .addOnSuccessListener(
                         (Void unused) -> {
                             // We're discovering!
@@ -214,14 +214,64 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
                         });
     }
 
-    // Returns `true` if advertising
+    // Sends the message received over to the react-native side
+    private void emitMessage(String message) {
+        WritableMap payload = Arguments.createMap();
+        payload.putString("message", message);
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("message", payload);
+    }
+
+    // Sends message to the remote endpoint
     @ReactMethod
+    public void sendMessage(String endpointId, String message) {
+        /**
+         * @endpointId: remote id of the device to send message
+         * @message: Message to be sent
+         **/
+        byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+        Payload bytesPayload = Payload.fromBytes(bytes);
+        Nearby.getConnectionsClient(reactContext).sendPayload(endpointId, bytesPayload);
+    }
+
+    // Returns a list of all endpoints (`endpointIds`) discovered
+    public void getEndpoints() {
+        WritableArray endpointArray = Arguments.createArray();
+        for (Map.Entry<String, Endpoint> endpoint: mEndpoints.entrySet()) {
+            endpointArray.pushString(endpoint.getKey());
+        }
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("endpoints", endpointArray);
+    }
+
+    protected static class Endpoint {
+        @NonNull private String serviceId;
+        @NonNull private String id;
+        @NonNull private String name;
+
+        private Endpoint(String serviceId, String id, String name) {
+            this.serviceId = serviceId;
+            this.id = id;
+            this.name = name;
+        }
+
+        public WritableMap toWritableMap() {
+            WritableMap out = Arguments.createMap();
+
+            out.putString("serviceId", serviceId);
+            out.putString("endpointId", id);
+            out.putString("endpointName", name);
+
+            return out;
+        }
+    }
+
+    // Returns `true` if advertising
     public boolean isAdvertising() {
         return mIsAdvertising;
     }
 
     // Returns `true` if discovering
-    @ReactMethod
     public boolean isDiscovering() {
         return mIsDiscovering;
     }

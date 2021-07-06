@@ -1,5 +1,5 @@
-com/aossiep2p/ConnectionPackage.java
- com.aossiep2p.ConnectionPackage
+com/facebook/react/PackageList.java
+ com.facebook.react.PackageList
 com/aossiep2p/ReactNativeFlipper.java
  com.aossiep2p.ReactNativeFlipper
  com.aossiep2p.ReactNativeFlipper$1
@@ -12,10 +12,11 @@ com/aossiep2p/MainActivity.java
 com/aossiep2p/MainApplication.java
  com.aossiep2p.MainApplication
  com.aossiep2p.MainApplication$1
+com/aossiep2p/ConnectionPackage.java
+ com.aossiep2p.ConnectionPackage
 com/aossiep2p/ConnectionModule.java
  com.aossiep2p.ConnectionModule
  com.aossiep2p.ConnectionModule$1
  com.aossiep2p.ConnectionModule$2
  com.aossiep2p.ConnectionModule$3
-com/facebook/react/PackageList.java
- com.facebook.react.PackageList
+ com.aossiep2p.ConnectionModule$Endpoint
