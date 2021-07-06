@@ -1,75 +1,82 @@
 import React, { useState } from 'react';
-import { NativeModules, Button, View } from 'react-native';
+import { NativeModules, Button, View, Text, Alert, DeviceEventEmitter, TextInput } from 'react-native';
 
 const { NearbyConnection } = NativeModules;
 
-const App = () => {
-    const [devices, setDevices] = useState([]);
+const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
+// Generates a random string twhich serves as an identifer
+// for the endpoint
+const generateString = (length) => {
+    let result = ' ';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+const App = () => {
+    const [endpoints, setEndpoints] = useState([]);
+    const [messages, setMessages] = useState([]);
+    const [msg, setMsg] = useState();
+
+    let name = generateString(5);
+
+    // Start discovery with given `name`
     const discover = () => {
         NearbyConnection.startDiscovery(
-            "ritik",
-            "12345",
+            name
         );
     }
-    
+
+    // Start advertising with `given` name
     const advertise = () => {
         NearbyConnection.startAdvertising(
-            "ritik",
-            "12345",
+            name
         );
     }
 
-    const func = async () => {
-        const d = await NearbyConnection.endpoints();
-        console.log(d)
-        setDevices(d);
+    const endpointList = (event) => {
+        setEndpoints(event);
     }
 
-    const sendData = () => {
-        if(devices.length>0){
-            let id = devices[0].endpointId;
-            NearbyConnection.sendMessage(id, "HI there from Mom!");
-            console.log("Message sent!");
-        }
-        else{
-            console.log("No device connected");
-        }
+    // Sends a message to the given endpoint
+    const sendMessage = (endpointId) => {
+        console.log(endpointId)
+        NearbyConnection.sendMessage(endpointId, msg);
+        setMsg("");
     }
 
-    const receiveMessage = async () => {
-        const msg = await NearbyConnection.getMessage();
-        console.log("This is the msg", msg);
+    const receiveMessage = (event) => {
+        alert(JSON.stringify(event));
+        // setMessages([...messages, event]);
     }
 
+    // Listens for endpoints discovered/lost
+    DeviceEventEmitter.addListener('endpoints', endpointList);
 
-    return(
-        <View>
-            <Button 
+    // Listens for incoming messages
+    DeviceEventEmitter.addListener('message', receiveMessage);
+
+    return (
+        <View style={{ flex: 1 }}>
+            <Button
                 title="Advertise"
                 color='#841584'
                 onPress={advertise}
             />
-            <Button 
+            <Button
                 title="Discover"
                 color='#841584'
                 onPress={discover}
             />
-            <Button
-                title="Check"
-                color="green"
-                onPress={func}
-            />
-            <Button 
-                title="Send Message"
-                color="blue"
-                onPress={sendData}
-           />
-           <Button
-                title="receive"
-                color="black"
-                onPress={receiveMessage}
-           />
+            <TextInput style={{ backgroundColor: 'black', color: 'white' }} value={msg} onChangeText={text => setMsg(text)} />
+            {endpoints.map((item, key) => {
+                return (
+                    <Button key={key} onPress={() => sendMessage(item)} title={item} />
+                );
+            })}
         </View>
     )
 }
