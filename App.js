@@ -3,13 +3,25 @@ import { NativeModules, Button, View, Text, Alert, DeviceEventEmitter, TextInput
 
 const { NearbyConnection } = NativeModules;
 
+const ID_SIZE = 5;
+
+const generateId = (length) => {
+    let id = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        id += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return id;
+}
+
 const App = () => {
     const [endpoints, setEndpoints] = useState([]);
     const [messages, setMessages] = useState([]);
     const [msg, setMsg] = useState();
     const [targetName, setTargetName] = useState("");
 
-    let name = "samsung"
+    let name = generateId(ID_SIZE);
 
     // Start discovery with given `name`
     const discover = () => {
@@ -29,23 +41,10 @@ const App = () => {
         setEndpoints(event);
     }
 
-    // Sends a message to the given endpoint
-    const sendMessage = (endpointId) => {
-        // message%target_name
-        NearbyConnection.sendMessage(endpointId, msg);
-        setMsg("");
-    }
-
-    const receiveMessage = (event) => {
-        alert(JSON.stringify(event));
-        // setMessages([...messages, event]);
-    }
-
     const msendMessage = (senderName) => {
         endpoints.map(endpoint => {
             let id = endpoint.split('_')[0];
             let endpointName = endpoint.split('_')[1];
-            console.log(endpointName, senderName)
             if(endpointName !== senderName){
                 let message = msg;
                 message = msg + '%' + targetName + '%' + name;
@@ -56,7 +55,6 @@ const App = () => {
 
     const mreceiveMessage = (event) => {
         let data = event['message']
-        console.log(event)
         // split the message
         data = data.split('%');
         let message = data[0];
