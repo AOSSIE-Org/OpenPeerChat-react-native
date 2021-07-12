@@ -238,7 +238,9 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
     public void getEndpoints() {
         WritableArray endpointArray = Arguments.createArray();
         for (Map.Entry<String, Endpoint> endpoint: mEndpoints.entrySet()) {
-            endpointArray.pushString(endpoint.getKey());
+            String key = endpoint.getKey();
+            Endpoint epoint = mEndpoints.get(key);
+            endpointArray.pushString(key+"_"+epoint.name);
         }
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit("endpoints", endpointArray);
