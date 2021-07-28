@@ -13,6 +13,11 @@
     "@react-native-async-storage/async-storage": "^1.15.5",
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
+    "fbemitter": "^3.0.0",
+    "p2p-client-js": "../p2p-client/p2p-client-js/",
+    "promise.allsettled": "^1.0.4",
     "react": "17.0.1",
     "react-native": "0.64.2",
     "react-native-gesture-handler": "^1.10.3",
@@ -21,7 +26,10 @@
     "react-native-rename": "^2.9.0",
     "react-native-safe-area-context": "^3.2.0",
     "react-native-screens": "^3.4.0",
-    "react-native-vector-icons": "^8.1.0"
+    "react-native-vector-icons": "^8.1.0",
+    "react-native-webrtc": "^1.89.3",
+    "unorm": "^1.6.0",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",

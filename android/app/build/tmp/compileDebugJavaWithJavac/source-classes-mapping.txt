@@ -9,14 +9,14 @@ com/aossiep2p/BuildConfig.java
  com.aossiep2p.BuildConfig
 com/aossiep2p/MainActivity.java
  com.aossiep2p.MainActivity
-com/facebook/react/PackageList.java
- com.facebook.react.PackageList
+com/aossiep2p/MainApplication.java
+ com.aossiep2p.MainApplication
+ com.aossiep2p.MainApplication$1
 com/aossiep2p/ConnectionModule.java
  com.aossiep2p.ConnectionModule
  com.aossiep2p.ConnectionModule$1
  com.aossiep2p.ConnectionModule$2
  com.aossiep2p.ConnectionModule$3
  com.aossiep2p.ConnectionModule$Endpoint
-com/aossiep2p/MainApplication.java
- com.aossiep2p.MainApplication
- com.aossiep2p.MainApplication$1
+com/facebook/react/PackageList.java
+ com.facebook.react.PackageList
