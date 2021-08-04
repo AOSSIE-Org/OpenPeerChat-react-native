@@ -24,18 +24,21 @@ const MatrixServerProvider = ({ children }) => {
 
   const updateContacts = (server) => {
     const rooms = server.getRooms();
-    console.log("rooms:", rooms.length)
     const reqRoomsInfo = rooms.map(room => {
-      const members = room.currentState._displayNameToUserIds;
-      const otherMember = Object.keys(members).filter(key => !members[key][0].startsWith('@'+username))[0];
-      return {
-        id: members[otherMember][0],
-        name: otherMember
+      try {
+        const members = room.currentState._displayNameToUserIds;
+        const otherMember = Object.keys(members).filter(key => !members[key][0].startsWith('@'+username))[0];
+        return {
+          id: members[otherMember][0],
+          name: otherMember
+        }
+      } catch (e) {
+        return undefined;
       }
-    })
+    }).filter(data => data)
     setContacts(reqRoomsInfo);
   }
-
+  if(!server) return null;
   return (
     <MatrixServerContext.Provider value={{setServerUrl, server, updateContacts}}>{children}</MatrixServerContext.Provider>
   );
