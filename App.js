@@ -1,109 +1,89 @@
-import React, { useState } from 'react';
-import { NativeModules, Button, View, Text, Alert, DeviceEventEmitter, TextInput } from 'react-native';
+import React from "react";
+import { View } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import Icon from "react-native-vector-icons/Ionicons";
 
-const { NearbyConnection } = NativeModules;
 
-const ID_SIZE = 5;
+import { MatrixServerProvider } from "./src/context/MatrixServer";
+import Splash from "./src/Splash";
+import Name from "./src/Name";
+import Home from "./src/Home";
+import Chat from "./src/Chat";
+import AddChat from "./src/AddChat";
 
-const generateId = (length) => {
-    let id = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-        id += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return id;
-}
+const Stack = createStackNavigator();
+
+const MainStack = () => {
+  
+  return (
+    <MatrixServerProvider>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Splash"
+          component={Splash}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Name"
+          component={Name}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="AddChat"
+          component={AddChat}
+          options={{
+            title: "Add Contact",
+            headerStyle: {
+              backgroundColor: "#B83227",
+              height: 60,
+            },
+            headerTintColor: "#fff",
+          }}
+        />
+        <Stack.Screen
+          name="Home"
+          component={Home}
+          options={{
+            headerLeft: () => null,
+            title: "Aossie Chat",
+            headerRight: () => (
+              <View style={{ flexDirection: "row" }}>
+                <Icon
+                  name="search"
+                  size={25}
+                  style={{ marginRight: 20, color: "#fff" }}
+                />
+                <Icon
+                  name="md-settings-sharp"
+                  size={25}
+                  style={{ marginRight: 15, color: "#fff" }}
+                />
+              </View>
+            ),
+            headerStyle: {
+              backgroundColor: "#B83227",
+              height: 80,
+            },
+            headerTintColor: "#fff",
+          }}
+        />
+        <Stack.Screen
+          name="Chat"
+          component={Chat}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    </MatrixServerProvider>
+  );
+};
 
 const App = () => {
-    const [endpoints, setEndpoints] = useState([]);
-    const [messages, setMessages] = useState([]);
-    const [msg, setMsg] = useState();
-    const [targetName, setTargetName] = useState("");
-
-    let name = generateId(ID_SIZE);
-
-    // Start discovery with given `name`
-    const discover = () => {
-        NearbyConnection.startDiscovery(
-            name
-        );
-    }
-
-    // Start advertising with `given` name
-    const advertise = () => {
-        NearbyConnection.startAdvertising(
-            name
-        );
-    }
-
-    const endpointList = (event) => {
-        setEndpoints(event);
-    }
-
-    const msendMessage = (senderName) => {
-        endpoints.map(endpoint => {
-            let id = endpoint.split('_')[0];
-            let endpointName = endpoint.split('_')[1];
-            if(endpointName !== senderName){
-                let message = msg;
-                message = msg + '%' + targetName + '%' + name;
-                NearbyConnection.sendMessage(id, message);
-            }
-        })
-    }
-
-    const mreceiveMessage = (event) => {
-        let data = event['message']
-        // split the message
-        data = data.split('%');
-        let message = data[0];
-        let targetName = data[1];
-        let senderName = data[2];
-        if(name === targetName){
-            alert(`Message: ${message}`);
-            return;
-        }
-        else{
-            alert(`Message is hopped for ${targetName}`);
-            msendMessage(senderName);
-        }
-    }
-
-    // Listens for endpoints discovered/lost
-    DeviceEventEmitter.addListener('endpoints', endpointList);
-
-    // Listens for incoming messages
-    DeviceEventEmitter.addListener('message', mreceiveMessage);
-
-    return (
-        <View style={{ flex: 1 }}>
-            <Text style={{alignSelf: 'center'}}>Name of device: {name}</Text>
-            <Button
-                title="Advertise"
-                color='#841584'
-                onPress={advertise}
-            />
-            <Button
-                title="Discover"
-                color='#841584'
-                onPress={discover}
-            />
-            <TextInput style={{ backgroundColor: 'red', color: 'white' }}
-                placeholder="Target Name"
-                placeholderTextColor="white"
-                value={targetName} onChangeText={text => setTargetName(text)} />
-            <TextInput style={{ backgroundColor: 'black', color: 'white' }} value={msg} 
-                placeholder="Message"
-                placeholderTextColor="white"
-                onChangeText={text => setMsg(text)} />
-            {endpoints.map((item, key) => {
-                return (
-                    <Button key={key} onPress={() => msendMessage()} title={item} />
-                );
-            })}
-        </View>
-    )
-}
+  return (
+    <NavigationContainer>
+      <MainStack />
+    </NavigationContainer>
+  );
+};
 
 export default App;
