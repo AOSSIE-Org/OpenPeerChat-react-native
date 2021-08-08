@@ -33,11 +33,11 @@ const Home = ({ navigation }) => {
         <Icon name="ios-person-add-sharp" size={23} color="#fff" />
       </TouchableOpacity>
       <View style={styles.chatContainer}>
-        {contacts.map((user, key) => {
+        {contacts.map((user) => {
           const name = user.name;
           const id = user.id;
           return (
-            <ScrollView key={key}>
+            <ScrollView key={id}>
               <TouchableOpacity
                 onPress={() => navigateToChat(name, id)}
                 style={{ flexDirection: "row", marginBottom: 10 }}

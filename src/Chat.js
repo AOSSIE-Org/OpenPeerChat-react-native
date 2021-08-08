@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
 } from "react-native";
 import { GiftedChat } from "react-native-gifted-chat";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MatrixServerContext } from './context/MatrixServer';
+import { UserInfoContext } from "./context/UserInfo";
 
 const { NearbyConnection } = NativeModules;
 
@@ -15,9 +17,12 @@ const Chat = (props) => {
   const [messages, setMessages] = useState([]);
   const [endpoints, setEndpoints] = useState([]);
   const [message, setMessage] = useState("");
-  const { username, uid } = props.route.params; // username and uid of the target device
+  const targetUsername = props.route.params.username; // username of the target device
+  const targetUId = props.route.params.uid; // uid of the target device
   const [deviceId, setDeviceId] = useState();
-
+  const { server } = useContext(MatrixServerContext)
+  const { username } = useContext(UserInfoContext)
+  const myUId = server.getUserId();
   const endpointList = (event) => {
     setEndpoints(event);
   };
@@ -36,14 +41,12 @@ const Chat = (props) => {
   };
 
   const onSend = useCallback((messages = []) => {
-    console.log(messages);
     setMessages((previousMessages) =>
       GiftedChat.append(previousMessages, messages)
     );
   }, []);
 
-  const addMessageToDisplay = (id, messages) => {
-    const text = messages[0].text;
+  const addMessageToDisplay = (id, text) => {
     const message = [
       {
         _id: Math.random(1000),
@@ -56,9 +59,7 @@ const Chat = (props) => {
       },
     ];
 
-    setMessages((previousMessages) => {
-      GiftedChat.append(previousMessages, message)
-    })
+    setMessages((previousMessages) => GiftedChat.append(previousMessages, message))
   };
 
   const receiveMessage = (event) => {
@@ -78,11 +79,11 @@ const Chat = (props) => {
   useEffect(async () => {
     setMessages([
       {
-        _id: 1,
+        _id: myUId,
         text: "Hello developer",
         createdAt: new Date(),
         user: {
-          _id: 2,
+          _id: targetUId,
           name: "React Native",
           avatar: "https://placeimg.com/140/140/any",
         },
@@ -96,38 +97,40 @@ const Chat = (props) => {
     // Start Advertising to nearby devices
     NearbyConnection.startAdvertising(device);
   }, []);
-
-  // useEffect(() => {
-  // setMessages([
-  //   {
-  //     _id: 1,
-  //     text: "Hello developer",
-  //     createdAt: new Date(),
-  //     user: {
-  //       _id: 2,
-  //       name: "React Native",
-  //       avatar: "https://placeimg.com/140/140/any",
-  //     },
-  //   },
-  // ]);
-  // }, []);
-
-  // Listens for endpoints discovered/lost
-  DeviceEventEmitter.addListener("endpoints", endpointList);
-
-  // Listens for incoming messages
-  DeviceEventEmitter.addListener("message", receiveMessage);
+  
+  useEffect(() => {
+    // Listens for endpoints discovered/lost
+    DeviceEventEmitter.addListener("endpoints", endpointList);
+  
+    // Listens for incoming messages
+    DeviceEventEmitter.addListener("message", receiveMessage);
+    const receiveMatrixEvents = (event) => {
+      if(event.sender.userId === targetUId && event.event.type === "m.room.message") {
+        addMessageToDisplay(targetUId, event.event.content.body);
+      }
+    };
+    server.on("Room.timeline", receiveMatrixEvents)
+    
+    return () => {
+        // DeviceEventEmitter.removeListener("endpoints", endpointList);
+        // DeviceEventEmitter.removeListener("message", receiveMessage);
+        server.off("Room.timeline", receiveMatrixEvents);
+      }
+  });
 
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.header}>
-        <Text style={styles.username}>{username}</Text>
+        <Text style={styles.username}>{targetUsername}</Text>
       </View>
       <GiftedChat
         messages={messages}
-        onSend={(messages) => addMessageToDisplay(1, messages)}
+        onSend={(messages) => {
+          server.sendMessage(targetUId, messages[0].text);
+          addMessageToDisplay(myUId, messages[0].text);
+        }}
         user={{
-          _id: 1,
+          _id: myUId,
         }}
       />
     </View>

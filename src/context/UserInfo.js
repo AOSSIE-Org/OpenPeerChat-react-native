@@ -26,8 +26,13 @@ const UserInfoProvider = ({ children }) => {
     setContactList(contacts);
   }
 
+  const addContact = async (contact) => {
+    const newList = [...contacts, contact]
+    setContacts(newList);
+  }
+
   return (
-    <UserInfoContext.Provider value={{username, otherSavedInfo, contacts, setContacts}}>{stateLoaded && children}</UserInfoContext.Provider>
+    <UserInfoContext.Provider value={{username, otherSavedInfo, contacts, setContacts, addContact}}>{stateLoaded && children}</UserInfoContext.Provider>
   );
 }
 
