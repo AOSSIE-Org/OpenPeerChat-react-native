@@ -62,6 +62,7 @@ const Name = ({ navigation }) => {
       try {
         await server.login(userInfo.username, userInfo.password)
       } catch (e) {
+        console.log(e);
         if(e.errcode === "M_FORBIDDEN") {
           const res = await server.registration(userInfo.username, userInfo.password);
           console.log(res);

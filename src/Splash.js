@@ -1,17 +1,35 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useContext } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MatrixServerContext } from "./context/MatrixServer";
+import { UserInfoContext } from "./context/UserInfo";
 
 const TIME = 1500;
 
 const Splash = ({ navigation }) => {
+  const { setServerUrl, updateContacts } = useContext(MatrixServerContext);
+  const { otherSavedInfo } = useContext(UserInfoContext)
+
   const isUserLogin = async () => {
     try {
-      let name = await AsyncStorage.getItem("username");
-      if (name !== null) {
-        return "Home";
+
+      if (!otherSavedInfo) {
+        return "Name";
       }
-      return "Name";
+      try {
+        const server = setServerUrl(otherSavedInfo.url);
+        await server.login(otherSavedInfo.username, otherSavedInfo.password);
+        const syncFunc = (state) => {
+          if(server.clientSyncedOnce){
+            updateContacts(server)
+            server.off('sync', syncFunc);
+          }
+        }
+        server.on('sync', syncFunc);
+      } catch (e) {
+        console.log(e.errcode);
+        return "Name";
+      }
+      return "Home";
     } catch (err) {
       console.error(err);
     }
@@ -19,9 +37,8 @@ const Splash = ({ navigation }) => {
 
   useEffect(async () => {
     let navigateToScreen = await isUserLogin();
-    setTimeout(() => {
-      navigation.navigate(navigateToScreen);
-    }, TIME);
+    
+    navigation.navigate(navigateToScreen);
   }, []);
 
   return (

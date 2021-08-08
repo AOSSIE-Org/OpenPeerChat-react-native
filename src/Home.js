@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,22 +8,13 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
+import { MatrixServerContext } from "./context/MatrixServer";
+import { UserInfoContext } from "./context/UserInfo";
 
 const Home = ({ navigation }) => {
-  const [users, setUsers] = useState({});
-
-  useEffect(() => {
-    const subscribe = navigation.addListener("focus", async () => {
-      let contacts = await AsyncStorage.getItem("contacts");
-      contacts = JSON.parse(contacts);
-      let users = {};
-      Object.keys(contacts).map((item) => {
-        users[item] = contacts[item];
-      });
-      setUsers(users);
-    });
-    return subscribe;
-  }, []);
+  const [users, setUsers] = useState([]);
+  const { server } = useContext(MatrixServerContext);
+  const { contacts } = useContext(UserInfoContext);
 
   const navigateToChat = (username, uid) => {
     navigation.navigate("Chat", {
@@ -42,9 +33,9 @@ const Home = ({ navigation }) => {
         <Icon name="ios-person-add-sharp" size={23} color="#fff" />
       </TouchableOpacity>
       <View style={styles.chatContainer}>
-        {Object.keys(users).map((user, key) => {
-          const name = users[user];
-          const id = user;
+        {contacts.map((user, key) => {
+          const name = user.name;
+          const id = user.id;
           return (
             <ScrollView key={key}>
               <TouchableOpacity

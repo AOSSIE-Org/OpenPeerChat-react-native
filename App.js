@@ -6,6 +6,8 @@ import Icon from "react-native-vector-icons/Ionicons";
 
 
 import { MatrixServerProvider } from "./src/context/MatrixServer";
+import { UserInfoProvider } from "./src/context/UserInfo";
+
 import Splash from "./src/Splash";
 import Name from "./src/Name";
 import Home from "./src/Home";
@@ -17,6 +19,8 @@ const Stack = createStackNavigator();
 const MainStack = () => {
   
   return (
+    <UserInfoProvider>
+
     <MatrixServerProvider>
       <Stack.Navigator>
         <Stack.Screen
@@ -75,6 +79,7 @@ const MainStack = () => {
         />
       </Stack.Navigator>
     </MatrixServerProvider>
+    </UserInfoProvider>
   );
 };
 
