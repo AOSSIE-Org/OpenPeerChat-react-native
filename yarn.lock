@@ -5106,9 +5106,9 @@ map-visit@^1.0.0:
     object-visit "^1.0.0"
 
 matrix-js-sdk@^12.0.0:
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/matrix-js-sdk/-/matrix-js-sdk-12.1.0.tgz#7d159dd9bc03701e45a6b2777f1fa582a7e8b970"
-  integrity sha512-/fSqOjD+mTlMD+/B3s3Ja6BfI46FnTDl43ojzGDUOsHRRmSYUmoONb83qkH5Fjm8cI2q5ZBJMsBfjuZwLVeiZw==
+  version "12.2.0"
+  resolved "https://registry.yarnpkg.com/matrix-js-sdk/-/matrix-js-sdk-12.2.0.tgz#e1dc7ddac054289cb24ee3d11dba8a5ba5ddecf5"
+  integrity sha512-foSs3uKRc6uvFNhgY35eErBvLWVDd5RNIxxsdFKlmU3B+70YUf3BP3petyBNW34ORyOqNdX36IiApfLo3npNEw==
   dependencies:
     "@babel/runtime" "^7.12.5"
     another-json "^0.2.0"
@@ -5471,12 +5471,24 @@ mime-db@1.48.0, "mime-db@>= 1.43.0 < 2":
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.48.0.tgz#e35b31045dd7eada3aaad537ed88a33afbef2d1d"
   integrity sha512-FM3QwxV+TnZYQ2aRqhlKBMHxk10lTbMt3bBkMAp54ddrNeVSfcQYOOKuGuy3Ddrm38I04If834fOUSq1yzslJQ==
 
-mime-types@^2.1.12, mime-types@^2.1.27, mime-types@~2.1.19, mime-types@~2.1.24:
+mime-db@1.49.0:
+  version "1.49.0"
+  resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.49.0.tgz#f3dfde60c99e9cf3bc9701d687778f537001cbed"
+  integrity sha512-CIc8j9URtOVApSFCQIF+VBkX1RwXp/oMMOrqdyXSBXq5RWNEsRfyj1kiRnQgmNXmHxPoFIxOroKA3zcU9P+nAA==
+
+mime-types@^2.1.12, mime-types@^2.1.27, mime-types@~2.1.24:
   version "2.1.31"
   resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.31.tgz#a00d76b74317c61f9c2db2218b8e9f8e9c5c9e6b"
   integrity sha512-XGZnNzm3QvgKxa8dpzyhFTHmpP3l5YNusmne07VUOXxou9CqUqYa/HBy124RqtVh/O2pECas/MOcsDgpilPOPg==
   dependencies:
     mime-db "1.48.0"
+
+mime-types@~2.1.19:
+  version "2.1.32"
+  resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.32.tgz#1d00e89e7de7fe02008db61001d9e02852670fd5"
+  integrity sha512-hJGaVS4G4c9TSMYh2n6SQAGrC4RnfU+daP8G7cSCmaqNjiOoUY0VHCMS42pxnQmVF1GWwFhbHWn3RIxCqTmZ9A==
+  dependencies:
+    mime-db "1.49.0"
 
 mime@1.6.0:
   version "1.6.0"
@@ -5900,7 +5912,7 @@ p-try@^2.0.0:
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.2.0.tgz#cb2868540e313d61de58fafbe35ce9004d5540e6"
   integrity sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==
 
-p2p-client-js@../p2p-client/p2p-client-js/:
+p2p-client-js@../p2p-server/p2p-client-js/:
   version "1.0.0"
   dependencies:
     "@bitauth/libauth" "^1.17.1"
@@ -6278,6 +6290,11 @@ react-native-rename@^2.9.0:
     node-replace "^0.3.3"
     shelljs "^0.8.4"
 
+react-native-rsa-native@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/react-native-rsa-native/-/react-native-rsa-native-2.0.3.tgz#a028fe5ddedcd50e792c0bd0f04c48f97a084d64"
+  integrity sha512-3M9U+cBMIYdvYAHImnIn1ODC948gi7A0lT9CNK3AUllD6qzRV9x+9RgPqPtAJfuC3fw6KyhP30zXaIKfAZGBHA==
+
 react-native-safe-area-context@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-3.2.0.tgz#06113c6b208f982d68ab5c3cebd199ca93db6941"
@@ -6289,6 +6306,11 @@ react-native-screens@^3.4.0:
   integrity sha512-cg+q9MRnVdeOcJyvJtqffoXLur/C2wHA/7IO2+FAipzTlgHbbM1mTuSM7qG+SeiQjoIs4mHOEf7A0ziPKW04sA==
   dependencies:
     warn-once "^0.1.0"
+
+react-native-sqlite-storage@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-sqlite-storage/-/react-native-sqlite-storage-5.0.0.tgz#fb015c928b59d3000360fb0774a99545e7a695d6"
+  integrity sha512-c1Joq3/tO1nmIcP8SkRZNolPSbfvY8uZg5lXse0TmjIPC0qHVbk96IMvWGyly1TmYCIpxpuDRc0/xCffDbYIvg==
 
 react-native-typing-animation@^0.1.7:
   version "0.1.7"
@@ -7705,9 +7727,9 @@ wrappy@1:
   integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
 
 wretch@^1.7.4:
-  version "1.7.5"
-  resolved "https://registry.yarnpkg.com/wretch/-/wretch-1.7.5.tgz#81dd6a6d12130bf4cc300d5a90d8f515d3d1de80"
-  integrity sha512-gfErt6B+B5hJDQ/svHg+8aONEYTjo6Y0C/jXcJRDLezqSrW6qUvftqm1HJaP1F/Y2QGy2kJXeH8FD++O54LeGg==
+  version "1.7.6"
+  resolved "https://registry.yarnpkg.com/wretch/-/wretch-1.7.6.tgz#62297b23a51cd025c663ef53f14de1c9851e2202"
+  integrity sha512-N2sYGNRaianJZJROz31vNoGo7Sd+2ElX9g+qwiOQ8/+3oJVCEOkFxVMSYT/8QQqTrWs5bmMbDyxrOleALhUMCA==
 
 write-file-atomic@^2.3.0:
   version "2.4.3"

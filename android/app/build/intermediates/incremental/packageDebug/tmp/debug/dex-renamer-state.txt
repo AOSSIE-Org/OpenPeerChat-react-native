@@ -1,10 +1,10 @@
-#Mon Jul 26 12:43:39 IST 2021
-base.2=/home/harry/Desktop/P2P/react-native/android/app/build/intermediates/dex/debug/mergeLibDexDebug/classes.dex
+#Tue Aug 10 18:17:39 IST 2021
 path.2=classes.dex
-base.1=/home/harry/Desktop/P2P/react-native/android/app/build/intermediates/dex/debug/mergeProjectDexDebug/classes.dex
 path.1=classes.dex
-base.0=/home/harry/Desktop/P2P/react-native/android/app/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex
+path.0=classes.dex
 renamed.2=classes3.dex
 renamed.1=classes2.dex
 renamed.0=classes.dex
-path.0=classes.dex
+base.2=/home/ritik/p2p-messaging-react-native/android/app/build/intermediates/dex/debug/mergeProjectDexDebug/classes.dex
+base.1=/home/ritik/p2p-messaging-react-native/android/app/build/intermediates/dex/debug/mergeLibDexDebug/classes.dex
+base.0=/home/ritik/p2p-messaging-react-native/android/app/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex

@@ -1,14 +1,14 @@
-import { EventEmitter } from 'fbemitter';
-import unorm from 'unorm'
-import { 
-  RTCPeerConnection, 
-  RTCSessionDescription, 
+import { EventEmitter } from "fbemitter";
+import unorm from "unorm";
+import {
+  RTCPeerConnection,
+  RTCSessionDescription,
   RTCIceCandidate,
-} from 'react-native-webrtc';
+} from "react-native-webrtc";
 
-String.prototype.normalize = function(form) { return require('unorm')[String(form).toLowerCase()](this); }
-
-
+String.prototype.normalize = function (form) {
+  return require("unorm")[String(form).toLowerCase()](this);
+};
 
 class Document {
   constructor() {
@@ -25,7 +25,11 @@ class Document {
   _checkEmitter() {
     if (
       !this.emitter ||
-      !(this.emitter.on || this.emitter.addEventListener || this.emitter.addListener)
+      !(
+        this.emitter.on ||
+        this.emitter.addEventListener ||
+        this.emitter.addListener
+      )
     ) {
       this.emitter = new EventEmitter();
     }
@@ -56,5 +60,6 @@ class Document {
 
 window.document = window.document || new Document();
 window.RTCPeerConnection = window.RTCPeerConnection || RTCPeerConnection;
-window.RTCSessionDescription = window.RTCSessionDescription || RTCSessionDescription;
+window.RTCSessionDescription =
+  window.RTCSessionDescription || RTCSessionDescription;
 window.RTCIceCandidate = window.RTCIceCandidate || RTCIceCandidate;

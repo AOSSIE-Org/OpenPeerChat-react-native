@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { GiftedChat } from "react-native-gifted-chat";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { MatrixServerContext } from './context/MatrixServer';
+import { MatrixServerContext } from "./context/MatrixServer";
 import { UserInfoContext } from "./context/UserInfo";
 
 const { NearbyConnection } = NativeModules;
@@ -20,9 +20,11 @@ const Chat = (props) => {
   const targetUsername = props.route.params.username; // username of the target device
   const targetUId = props.route.params.uid; // uid of the target device
   const [deviceId, setDeviceId] = useState();
-  const { server } = useContext(MatrixServerContext)
-  const { username } = useContext(UserInfoContext)
+  const { server } = useContext(MatrixServerContext);
+  const { username } = useContext(UserInfoContext);
   const myUId = server.getUserId();
+
+  // Get the list of nearby endpoints connected
   const endpointList = (event) => {
     setEndpoints(event);
   };
@@ -31,37 +33,32 @@ const Chat = (props) => {
     endpoints.map((endpoint) => {
       let id = endpoint.split("_")[0];
       let endpointName = endpoint.split("_")[1];
-      if (endpointName !== senderName) {
+      if (endpointName !== deviceId) {
         let message = msg;
         message = msg + "%" + uid + "%" + deviceId;
-        addMessageToDisplay(1, message);
         NearbyConnection.sendMessage(id, message);
       }
     });
   };
 
-  const onSend = useCallback((messages = []) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, messages)
-    );
-  }, []);
-
   const addMessageToDisplay = (id, text) => {
     const message = [
       {
-        _id: Math.random(1000),
-        createdAt: new Date(),
-        text: text,
+        _id: Math.random(10000),
+        createdAt: new Date().getTime(),
+        text: message,
         user: {
-          _id: id,
-          avatar: "https://placeimg.com/140/140/any",
+          _id: type,
         },
       },
     ];
 
-    setMessages((previousMessages) => GiftedChat.append(previousMessages, message))
+    setMessages((previousMessages) =>
+      GiftedChat.append(previousMessages, message)
+    );
   };
 
+  // listener that receives messages from nearby devices
   const receiveMessage = (event) => {
     let data = event["message"];
     data = data.split("%");
@@ -74,6 +71,30 @@ const Chat = (props) => {
     } else {
       sendMessage(senderName);
     }
+  };
+
+  const loadData = async (myUID) => {
+    try {
+      const db = await getDBConnection();
+      // await deleteTable(db);
+      await createTable(db);
+
+      let sentChats = await getMyChat(db, myUID, uid);
+      let len = sentChats[0].rows.length;
+      for (let i = 0; i < len; i++) {
+        let data = sentChats[0].rows.item(i);
+        addMessageToDisplay(1, data.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSend = (newMessage = []) => {
+    sendMessage();
+    setMessages((previousMessages) =>
+      GiftedChat.append(previousMessages, newMessage)
+    );
   };
 
   useEffect(async () => {
@@ -91,37 +112,50 @@ const Chat = (props) => {
     ]);
     const device = await AsyncStorage.getItem("uid");
     setDeviceId(device);
-    // start discovering to nearby devices
+
+    loadData(device);
+
+    // start discovering nearby devices
     NearbyConnection.startDiscovery(device);
 
     // Start Advertising to nearby devices
     NearbyConnection.startAdvertising(device);
   }, []);
-  
+
   useEffect(() => {
     // Listens for endpoints discovered/lost
     DeviceEventEmitter.addListener("endpoints", endpointList);
-  
+
     // Listens for incoming messages
     DeviceEventEmitter.addListener("message", receiveMessage);
     const receiveMatrixEvents = (event) => {
-      if(event.sender.userId === targetUId && event.event.type === "m.room.message") {
+      if (
+        event.sender.userId === targetUId &&
+        event.event.type === "m.room.message"
+      ) {
         addMessageToDisplay(targetUId, event.event.content.body);
       }
     };
-    server.on("Room.timeline", receiveMatrixEvents)
-    
+    server.on("Room.timeline", receiveMatrixEvents);
+
     return () => {
-        // DeviceEventEmitter.removeListener("endpoints", endpointList);
-        // DeviceEventEmitter.removeListener("message", receiveMessage);
-        server.off("Room.timeline", receiveMatrixEvents);
-      }
+      // DeviceEventEmitter.removeListener("endpoints", endpointList);
+      // DeviceEventEmitter.removeListener("message", receiveMessage);
+      server.off("Room.timeline", receiveMatrixEvents);
+    };
   });
 
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.header}>
         <Text style={styles.username}>{targetUsername}</Text>
+      </View>
+      <View style={{ backgroundColor: "#000" }}>
+        {endpoints.length === 0 && (
+          <Text style={{ color: "#fff", textAlign: "center" }}>
+            There is no active nearby device at the moment
+          </Text>
+        )}
       </View>
       <GiftedChat
         messages={messages}
