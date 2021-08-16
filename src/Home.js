@@ -1,10 +1,11 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useLayoutEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  NativeModules,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -15,6 +16,28 @@ const Home = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const { server } = useContext(MatrixServerContext);
   const { contacts } = useContext(UserInfoContext);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => null,
+      title: "Aossie Chat",
+      headerRight: () => (
+        <View style={{ flexDirection: "row" }}>
+          <Icon
+            name="md-settings-sharp"
+            size={25}
+            style={{ marginRight: 20, color: "#fff" }}
+            onPress={() => navigation.navigate("Settings")}
+          />
+        </View>
+      ),
+      headerStyle: {
+        backgroundColor: "#B83227",
+        height: 70,
+      },
+      headerTintColor: "#fff",
+    });
+  });
 
   const navigateToChat = (username, uid) => {
     navigation.navigate("Chat", {

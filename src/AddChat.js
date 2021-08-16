@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, Button } from "react-native";
 import { MatrixServerContext } from "./context/MatrixServer";
 import { UserInfoContext } from "./context/UserInfo";
 
-const AddChat = ({navigation}) => {
+const AddChat = ({ navigation }) => {
   const [uid, setUid] = useState();
   const [name, setName] = useState();
   const { server } = useContext(MatrixServerContext);
@@ -11,12 +11,12 @@ const AddChat = ({navigation}) => {
 
   const saveContact = async () => {
     const roomInfo = await server.createRoom({
-      invite: [ uid ],
-      name: 'private-chat-room'
-    })
+      invite: [uid],
+      name: "private-chat-room",
+    });
     addContact({
       id: uid,
-      name
+      name,
     });
     navigation.navigate("Chat", {
       username: name,
