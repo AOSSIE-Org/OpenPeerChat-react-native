@@ -6,7 +6,6 @@ import {
   NativeModules,
   DeviceEventEmitter,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GiftedChat } from "react-native-gifted-chat";
@@ -29,39 +28,40 @@ const Chat = (props) => {
   const [senderId, setSenderId] = useState();
   const [mounted, setMounted] = useState(false);
   const [keys, setKeys] = useState({});
-  const [refresh, setRefresh] = useState();
   const [receiverPK, setReceiverPk] = useState(null); // public key of the receiver
   const dbConnection = useRef(null);
   const { receiverName, receiverId } = props.route.params;
-  const { navigation } = props;
+
+  const handleEndpoints = () => {
+    NearbyConnection.getEndpoints(
+      (err) => {
+        console.error("Error getting endpoints", err);
+      },
+      (epoints) => {
+        setEndpoints(epoints);
+      }
+    );
+  };
+
+  const handleKeys = async () => {
+    const rPK = await AsyncStorage.getItem(receiverId);
+    setReceiverPk(rPK);
+
+    const sID = await AsyncStorage.getItem("uid");
+    setSenderId(sID);
+
+    let myKeys = await AsyncStorage.getItem(sID);
+    myKeys = JSON.parse(myKeys);
+    setKeys(myKeys);
+  };
 
   useEffect(() => {
     // Getting the public key of the receiver id
-    AsyncStorage.getItem(receiverId)
-      .then((key) => {
-        setReceiverPk(key);
-      })
-      .catch((err) => console.error(err));
-
-    const subscribe = navigation.addListener("focus", () => {
-      AsyncStorage.getItem("uid")
-        .then((id) => {
-          setSenderId(id);
-          AsyncStorage.getItem(id)
-            .then((key) => {
-              const myKey = JSON.parse(key);
-              setKeys(myKey);
-            })
-            .catch((err) => console.error(err));
-        })
-        .catch((err) => console.error(err));
-    });
-    return subscribe;
-  }, [navigation]);
-
-  const getEndpoints = (event) => {
-    setEndpoints(event);
-  };
+    const interval = setInterval(handleEndpoints, 1000);
+    DeviceEventEmitter.addListener("message", receiveMessage);
+    handleKeys();
+    return interval;
+  }, []);
 
   const addMessageToDisplay = (chat, type) => {
     const id = type === "SEND" ? senderId : receiverId;
@@ -75,9 +75,69 @@ const Chat = (props) => {
         },
       },
     ];
+
     setMessages((previousMessages) =>
       GiftedChat.append(previousMessages, message)
     );
+  };
+
+  const sendMessage = (text, id = null) => {
+    let message = {
+      message: text,
+      targetId: null,
+      senderId: id == null ? senderId : id,
+      timestamp: Date.now(),
+      type: "payload",
+    };
+
+    endpoints.map((endpoint) => {
+      const res = endpoint.split("_");
+      const id = res[0];
+      const username = res[1];
+      if (username !== senderId) {
+        message["targetId"] = receiverId;
+        message = JSON.stringify(message);
+        RSA.encrypt(message, receiverPK)
+          .then((encodedMessage) => {
+            NearbyConnection.sendMessage(id, encodedMessage);
+          })
+          .catch((err) => {
+            console.error(err);
+            return null;
+          });
+      }
+    });
+  };
+
+  const receiveMessage = (event) => {
+    console.info("Received a message");
+    let payload = event["message"];
+    RSA.decrypt(payload, keys.private)
+      .then((decryptedMessage) => {
+        const payload = JSON.parse(decryptedMessage);
+        const { message, timestamp } = payload;
+        saveMessage(
+          dbConnection.current,
+          payload.senderId,
+          senderId,
+          message,
+          timestamp
+        )
+          .then(() => {
+            console.info("Messages saved");
+            addMessageToDisplay(payload, "RECEIVE");
+          })
+          .catch((err) => console.error("Unable to save message to db", err));
+      })
+      .catch((err) => {
+        console.error(err);
+        // Hop the message
+        endpoints.map((endpoint) => {
+          const res = endpoint.split("_");
+          const id = res[0];
+          NearbyConnection.sendMessage(payload, id);
+        });
+      });
   };
 
   const loadChat = async (senderId) => {
@@ -120,6 +180,7 @@ const Chat = (props) => {
         });
       }
 
+      // Sorting the message by latest timestamp
       chats.sort((a, b) => {
         return a.timestamp - b.timestamp;
       });
@@ -127,71 +188,12 @@ const Chat = (props) => {
       chats.map((chat) => {
         addMessageToDisplay(chat, chat.type);
       });
-
-      setRefresh(Math.random(10000));
     } catch (err) {
       console.error(err);
     }
   };
 
-  const sendMessage = (text, id = null) => {
-    let message = {
-      message: text,
-      targetId: null,
-      senderId: id == null ? senderId : id,
-      timestamp: Date.now(),
-      type: "payload",
-    };
-
-    if (message.message === undefined) {
-      return;
-    }
-
-    endpoints.map((endpoint) => {
-      const res = endpoint.split("_");
-      const id = res[0];
-      const username = res[1];
-      if (username !== senderId) {
-        message["targetId"] = receiverId;
-        message = JSON.stringify(message);
-        RSA.encrypt(message, receiverPK)
-          .then((encodedMessage) => {
-            NearbyConnection.sendMessage(id, encodedMessage);
-          })
-          .catch((err) => {
-            console.error(err);
-            return null;
-          });
-      }
-    });
-  };
-
-  const receiveMessage = async (event) => {
-    let payload = event["message"];
-    RSA.decrypt(payload, keys.private)
-      .then(async (decryptedMessage) => {
-        const payload = JSON.parse(decryptedMessage);
-        const { message, timestamp } = payload;
-        await saveMessage(
-          dbConnection.current,
-          payload.senderId,
-          senderId,
-          message,
-          timestamp
-        );
-        await loadChat(senderId);
-      })
-      .catch((err) => {
-        // Hop the message
-        endpoints.map((endpoint) => {
-          const res = endpoint.split("_");
-          const id = res[0];
-          NearbyConnection.sendMessage(payload, id);
-        });
-      });
-  };
-
-  const handleSend = async (newMessage = []) => {
+  const handleSend = (newMessage = []) => {
     const { text } = newMessage[0];
 
     // Send the message to the nearby devices
@@ -204,25 +206,22 @@ const Chat = (props) => {
 
     // Save the message to the database
     const timestamp = Date.now();
-    await saveMessage(
-      dbConnection.current,
-      senderId,
-      receiverId,
-      text,
-      timestamp
-    );
+    saveMessage(dbConnection.current, senderId, receiverId, text, timestamp)
+      .then(() => console.info("Saved the message"))
+      .catch((err) => console.error("Unable to save the message", err));
 
     // Display the message
-    await loadChat(senderId);
+    const chat = {
+      message: text,
+      timestamp: timestamp,
+    };
+    addMessageToDisplay(chat, "SEND");
   };
 
   if (!mounted && senderId !== undefined) {
     setMounted(true);
     loadChat(senderId);
   }
-
-  DeviceEventEmitter.addListener("endpoints", getEndpoints);
-  DeviceEventEmitter.addListener("message", receiveMessage);
 
   if (!mounted) {
     return (
@@ -263,7 +262,6 @@ const Chat = (props) => {
         )}
       </View>
       <GiftedChat
-        isAnimated
         messages={messages}
         onSend={(messages) => {
           handleSend(messages);
