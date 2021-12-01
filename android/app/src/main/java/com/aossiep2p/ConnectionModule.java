@@ -2,6 +2,7 @@ package com.aossiep2p;
 
 import androidx.annotation.NonNull;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -100,18 +101,19 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
             switch (result.getStatus().getStatusCode()) {
                 case ConnectionsStatusCodes.STATUS_OK:
                     // We're connected! Can now start sending and receiving data.
-                    Log.d("Status", "Ok");
+                    Log.d("Status : " + endpointId, "Ok");
                     break;
                 case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                     // The connection was rejected by one or both sides.
-                    Log.e("Status", "rejected");
+                    Log.e("Status : " + endpointId, "rejected");
                     break;
                 case ConnectionsStatusCodes.STATUS_ERROR:
-                    Log.e("Status", "error");
+                    Log.e("Status : " + endpointId, "error");
                     // The connection broke before it was able to be accepted.
                     break;
                 default:
                     // Unknown status code
+                    Log.e("Unknown status", "error");
             }
         }
 
@@ -132,14 +134,18 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
             // An endpoint was found. We request a connection to it.
             Log.d("Endpoint discovered", info.getEndpointName());
             Endpoint endpoint = new Endpoint(SERVICE_ID, endpointId, info.getEndpointName());
-            mEndpoints.put(endpointId, endpoint);
-            getEndpoints(); // emits endpoint list to the react-native side
             Nearby.getConnectionsClient(reactContext).requestConnection(mName, endpointId, connectionLifecycleCallback)
                     .addOnSuccessListener((Void unused) -> {
-                        Log.d("connected", endpointId);
+                        Log.d("connected", endpointId + " " + info.getEndpointName());
+                        if(!mEndpoints.containsKey(endpointId)) {
+                            mEndpoints.put(endpointId, endpoint);
+                        }
                     }).addOnFailureListener((Exception e) -> {
                         // Nearby Connections failed to request the connection.
-                        Log.e("disconnected", endpointId);
+                        if(mEndpoints.containsKey(endpointId)) {
+                            mEndpoints.remove(endpointId);
+                        }
+                        Log.e("disconnected", endpointId + " " + info.getEndpointName());
                         System.out.println(e);
                     });
         }
@@ -147,8 +153,9 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
         @Override
         public void onEndpointLost(@NonNull String endpointId) {
             // The endpoint discovered is lost
-            mEndpoints.remove(endpointId);
-            getEndpoints();
+            if(mEndpoints.containsKey((endpointId))) {
+                mEndpoints.remove(endpointId);
+            }
         }
     };
 
@@ -203,7 +210,6 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
                     // We're unable to start discovering.
                     Log.d("Exception", "Discovery failed");
                     System.out.println(e);
-
                 });
     }
 
@@ -227,14 +233,16 @@ public class ConnectionModule extends ReactContextBaseJavaModule {
     }
 
     // Returns a list of all endpoints (`endpointIds`) discovered
-    public void getEndpoints() {
+    @ReactMethod
+    public void getEndpoints(Callback errorCallBack, Callback successCallBack) {
         WritableArray endpointArray = Arguments.createArray();
         for (Map.Entry<String, Endpoint> endpoint : mEndpoints.entrySet()) {
             String key = endpoint.getKey();
             Endpoint epoint = mEndpoints.get(key);
             endpointArray.pushString(key + "_" + epoint.name);
         }
-        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("endpoints", endpointArray);
+        successCallBack.invoke(endpointArray);
+//        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("endpoints", endpointArray);
     }
 
     protected static class Endpoint {

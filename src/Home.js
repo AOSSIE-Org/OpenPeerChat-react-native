@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
-import {COLORS} from "./assets/Colors"
+import { COLORS } from "./assets/Colors";
 
 const { NearbyConnection } = NativeModules;
 
@@ -41,12 +41,12 @@ const Home = ({ navigation }) => {
   useEffect(() => {
     AsyncStorage.getItem("uid")
       .then((id) => {
-        console.log("Discovery started");
-        NearbyConnection.startDiscovery(id);
         setTimeout(() => {
-          console.log("Advertising started");
-          NearbyConnection.startAdvertising(id);
-        }, 5000);
+          console.info("Discovery started");
+          NearbyConnection.startDiscovery(id);
+        }, 7500);
+        console.info("Advertising started");
+        NearbyConnection.startAdvertising(id);
       })
       .catch((err) => console.error(err));
     const subscribe = navigation.addListener("focus", async () => {
