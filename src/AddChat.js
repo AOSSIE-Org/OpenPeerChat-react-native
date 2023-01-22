@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, Button } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { COLORS } from "./assets/Colors";
 
-const AddChat = () => {
+const AddChat = ({navigation}) => {
   const [uid, setUid] = useState();
   const [publicKey, setPublicKey] = useState();
 
@@ -20,6 +20,7 @@ const AddChat = () => {
 
     // Save the public key of the target user
     await AsyncStorage.setItem(uid, publicKey);
+    navigation.navigate('Home')
   };
   return (
     <View style={styles.container}>
