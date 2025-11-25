@@ -13,7 +13,9 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
+    "allowJs": true,
     "isolatedModules": true,
+    "noEmit": true,
     "noImplicitAny": false,
     "strictNullChecks": false,
     "strictFunctionTypes": false,
@@ -24,13 +26,20 @@
   "include": [
     "src/**/*",
     "App.js",
-    "index.js"
+    "index.js",
+    "**/*.js",
+    "**/*.jsx",
+    "**/*.ts",
+    "**/*.tsx"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "build",
     "android",
-    "ios"
-  ]
+    "ios",
+    ".git",
+    "__tests__"
+  ],
+  "ts.nocheck": true
 }
