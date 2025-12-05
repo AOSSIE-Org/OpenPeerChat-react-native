@@ -96,7 +96,7 @@ const Home = ({ navigation }) => {
               style={{ flexDirection: "row", marginBottom: 15 }}
             >
               <View style={styles.iconContainer}>
-                <Text style={styles.contactIcon}>{name[0]}</Text>
+                <Text style={styles.contactIcon}>{name?.[0] || "?"}</Text>
               </View>
               <View style={styles.infoContainer}>
                 <Text style={styles.name}>{name}</Text>

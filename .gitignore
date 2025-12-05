@@ -85,6 +85,3 @@ dist/
 *.tmp
 tmp/
 temp/
-
-# Build outputs
-build/

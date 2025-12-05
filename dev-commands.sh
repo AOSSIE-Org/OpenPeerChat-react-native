@@ -78,9 +78,10 @@ lint-fix() {
 # Clean Android build
 rebuild-android() {
   echo "Cleaning Android build..."
-  cd android && ./gradlew clean
+  cd android || return 1
+  ./gradlew clean
   echo "✅ Android cleaned"
-  cd ..
+  cd .. || return 1
 }
 
 # Clean iOS build
@@ -136,17 +137,19 @@ check-versions() {
 # Build Android APK (debug)
 build-android-debug() {
   echo "Building Android debug APK..."
-  cd android && ./gradlew assembleDebug
+  cd android || return 1
+  ./gradlew assembleDebug
   echo "✅ APK built: android/app/build/outputs/apk/debug/"
-  cd ..
+  cd .. || return 1
 }
 
 # Build Android APK (release)
 build-android-release() {
   echo "Building Android release APK..."
-  cd android && ./gradlew assembleRelease
+  cd android || return 1
+  ./gradlew assembleRelease
   echo "✅ APK built: android/app/build/outputs/apk/release/"
-  cd ..
+  cd .. || return 1
 }
 
 # ============================================

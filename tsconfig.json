@@ -4,8 +4,6 @@
     "lib": ["ES2020"],
     "jsx": "react-native",
     "module": "esnext",
-    "declaration": true,
-    "outDir": "./dist",
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -40,6 +38,5 @@
     "ios",
     ".git",
     "__tests__"
-  ],
-  "ts.nocheck": true
+  ]
 }

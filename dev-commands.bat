@@ -90,21 +90,9 @@ echo [OK] Android cleaned
 goto end
 
 :rebuild_ios
-echo Cleaning iOS build...
-cd ios
-echo Removing Pods...
-if exist Pods (
-    rmdir /s /q Pods
-)
-if exist Podfile.lock (
-    del Podfile.lock
-)
-echo Running pod deintegrate...
-call pod deintegrate
-echo Running pod install...
-call pod install
-cd ..
-echo [OK] iOS cleaned and pods reinstalled
+echo [WARN] iOS rebuild requires macOS with CocoaPods installed.
+echo [WARN] This command is not available on Windows.
+echo [INFO] Please run 'pod deintegrate ^&^& pod install' on a macOS machine.
 goto end
 
 :rebuild_all

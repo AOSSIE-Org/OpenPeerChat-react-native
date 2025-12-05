@@ -20,14 +20,18 @@ const Settings = ({ navigation }) => {
     });
   });
 
-  useEffect(async () => {
-    let id = await AsyncStorage.getItem("uid");
-    let keys = await AsyncStorage.getItem(id);
-    keys = JSON.parse(keys);
-    setDeviceId(id);
-    setPublicKey(keys.public);
-    setPrivateKey(keys.private);
-    return;
+  useEffect(() => {
+    const loadData = async () => {
+      const id = await AsyncStorage.getItem("uid");
+      if (id) {
+        setDeviceId(id);
+        const keysString = await AsyncStorage.getItem(id);
+        const keys = JSON.parse(keysString);
+        setPublicKey(keys.public);
+        setPrivateKey(keys.private);
+      }
+    };
+    loadData();
   }, []);
 
   return (
