@@ -34,13 +34,16 @@ const Name = ({ navigation }) => {
   const handleNameChange = (e) => {
     setName(e);
   };
-  useEffect(async () => {
-    const device = await AsyncStorage.getItem("uid");
-    // start discovering to nearby devices
-    NearbyConnection.startDiscovery(device);
+  useEffect(() => {
+    const initializeDevice = async () => {
+      const device = await AsyncStorage.getItem("uid");
+      // start discovering to nearby devices
+      NearbyConnection.startDiscovery(device);
 
-    // Start Advertising to nearby devices
-    NearbyConnection.startAdvertising(device);
+      // Start Advertising to nearby devices
+      NearbyConnection.startAdvertising(device);
+    };
+    initializeDevice();
   }, []);
 
   const sendMessage = () => {};

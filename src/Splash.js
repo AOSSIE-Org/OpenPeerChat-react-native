@@ -20,11 +20,14 @@ const Splash = ({ navigation }) => {
     }
   };
 
-  useEffect(async () => {
-    let navigateToScreen = await isUserLogin();
-    setTimeout(() => {
-      navigation.navigate(navigateToScreen);
-    }, TIME);
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const navigateToScreen = await isUserLogin();
+      setTimeout(() => {
+        navigation.navigate(navigateToScreen);
+      }, TIME);
+    };
+    checkLoginStatus();
   }, []);
 
   return (

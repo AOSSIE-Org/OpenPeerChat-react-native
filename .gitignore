@@ -58,3 +58,30 @@ buck-out/
 
 # CocoaPods
 /ios/Pods/
+
+# TypeScript
+*.tsbuildinfo
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+.eslintcache
+
+# Metro bundler cache
+.metro-health-check-result
+
+# Temporary files
+*.tmp
+tmp/
+temp/

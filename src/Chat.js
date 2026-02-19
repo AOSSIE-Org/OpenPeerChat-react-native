@@ -58,9 +58,12 @@ const Chat = (props) => {
   useEffect(() => {
     // Getting the public key of the receiver id
     const interval = setInterval(handleEndpoints, 1000);
-    DeviceEventEmitter.addListener("message", receiveMessage);
+    const subscription = DeviceEventEmitter.addListener("message", receiveMessage);
     handleKeys();
-    return interval;
+    return () => {
+      clearInterval(interval);
+      subscription.remove();
+    };
   }, []);
 
   const addMessageToDisplay = (chat, type) => {

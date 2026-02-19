@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect } from "react";
+import React, { useEffect, useState, useLayoutEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -34,42 +34,48 @@ const Home = ({ navigation }) => {
       },
       headerTintColor: "#fff",
     });
-  });
+  }, [navigation]);
 
   const [users, setUsers] = useState({});
 
   useEffect(() => {
-    AsyncStorage.getItem("uid")
-      .then((id) => {
+    const initializeConnection = async () => {
+      try {
+        const id = await AsyncStorage.getItem("uid");
         setTimeout(() => {
           console.info("Discovery started");
           NearbyConnection.startDiscovery(id);
         }, 7500);
         console.info("Advertising started");
         NearbyConnection.startAdvertising(id);
-      })
-      .catch((err) => console.error(err));
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    initializeConnection();
+
     const subscribe = navigation.addListener("focus", async () => {
-      // await AsyncStorage.removeItem("contacts");
-      let contacts = await AsyncStorage.getItem("contacts");
-      if (contacts !== null) {
-        contacts = JSON.parse(contacts);
-        let users = {};
-        Object.keys(contacts).map((item) => {
-          users[item] = contacts[item];
-        });
-        setUsers(users);
+      try {
+        let contacts = await AsyncStorage.getItem("contacts");
+        if (contacts !== null) {
+          contacts = JSON.parse(contacts);
+          setUsers(contacts);
+        }
+      } catch (err) {
+        console.error(err);
       }
     });
     return subscribe;
-  }, []);
+  }, [navigation]);
 
-  const navigateToChat = (username, uid) => {
+  const navigateToChat = useCallback((username, uid) => {
     navigation.navigate("Chat", {
       receiverName: username,
       receiverId: uid,
     });
-  };
+  }, [navigation]);
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -80,27 +86,25 @@ const Home = ({ navigation }) => {
       >
         <Icon name="ios-person-add-sharp" size={23} color="#fff" />
       </TouchableOpacity>
-      <View style={styles.chatContainer}>
-        {Object.keys(users).map((user, key) => {
-          const name = users[user];
-          const id = user;
+      <ScrollView style={styles.chatContainer}>
+        {Object.keys(users).map((userId) => {
+          const name = users[userId];
           return (
-            <ScrollView key={key}>
-              <TouchableOpacity
-                onPress={() => navigateToChat(name, id)}
-                style={{ flexDirection: "row", marginBottom: 10 }}
-              >
-                <View style={styles.iconContainer}>
-                  <Text style={styles.contactIcon}>{name[0]}</Text>
-                </View>
-                <View style={styles.infoContainer}>
-                  <Text style={styles.name}>{name}</Text>
-                </View>
-              </TouchableOpacity>
-            </ScrollView>
+            <TouchableOpacity
+              key={userId}
+              onPress={() => navigateToChat(name, userId)}
+              style={{ flexDirection: "row", marginBottom: 15 }}
+            >
+              <View style={styles.iconContainer}>
+                <Text style={styles.contactIcon}>{name?.[0] || "?"}</Text>
+              </View>
+              <View style={styles.infoContainer}>
+                <Text style={styles.name}>{name}</Text>
+              </View>
+            </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -113,6 +117,7 @@ const styles = StyleSheet.create({
   chatContainer: {
     marginLeft: 20,
     marginTop: 10,
+    marginRight: 20,
   },
   iconContainer: {
     width: 50,
@@ -126,9 +131,6 @@ const styles = StyleSheet.create({
   contactIcon: {
     fontSize: 28,
     color: "#fff",
-  },
-  infoContainer: {
-    flexDirection: "column",
   },
   infoContainer: {
     marginTop: 10,
@@ -150,6 +152,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.blue,
     borderRadius: 100,
     elevation: 3,
+    zIndex: 10,
   },
 });
 
